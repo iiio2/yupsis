@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Fuse from 'fuse.js'
 import { ProductResponse } from './api/products'
 import Image from 'next/image'
 
@@ -20,10 +22,40 @@ export async function getServerSideProps() {
 }
 
 export default function Home({ products }: { products: ProductResponse[] }) {
+  const [data, setData] = useState<ProductResponse[]>([])
+  const [search, setSearch] = useState('')
+
+  function getProducts() {
+    if (!search) {
+      setData(products)
+      return
+    }
+    const fuse = new Fuse(products, {
+      keys: ['title', 'category', 'description', 'price'],
+    })
+    const searchedItems = fuse.search(search)
+    const filteredProducts = searchedItems.map((result) => result.item)
+    setData(filteredProducts)
+  }
+
+  useEffect(() => {
+    getProducts()
+  }, [search, products])
+
   return (
     <div className={`${geistSans.className} ${geistMono.className} font-sans`}>
+      <div className='flex items-center mb-3.5'>
+        <input
+          id='search'
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder='Search products...'
+          className='w-full md:w-80 p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500'
+        />
+      </div>
+
       <div className='grid grid-cols-1 md:grid-cols-4 gap-2 sm:gap-4'>
-        {products.map((product) => (
+        {data.map((product) => (
           <div
             key={product.id}
             className='border-2 border-gray-400 p-2.5 rounded-lg shadow-2xl'
@@ -35,7 +67,7 @@ export default function Home({ products }: { products: ProductResponse[] }) {
                 src={product.image}
                 alt={product.title}
                 fill={true}
-                objectFit='cover'
+                priority
               />
             </div>
 
@@ -43,7 +75,7 @@ export default function Home({ products }: { products: ProductResponse[] }) {
             <p>{product.category}</p>
             <div className='flex justify-between mt-2.5'>
               <p>${product.price}</p>
-              <p>{product.rating.rate}</p>
+              {/* <p>{product.rating.rate}</p> */}
             </div>
           </div>
         ))}
