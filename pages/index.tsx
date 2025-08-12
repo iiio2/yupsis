@@ -34,7 +34,7 @@ export default function Home({ products }: { products: ProductResponse[] }) {
               <Image
                 src={product.image}
                 alt={product.title}
-                layout='fill'
+                fill={true}
                 objectFit='cover'
               />
             </div>
