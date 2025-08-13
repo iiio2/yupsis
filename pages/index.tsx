@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Geist, Geist_Mono } from 'next/font/google'
-import Fuse from 'fuse.js'
 import { ProductResponse } from './api/products'
 import Image from 'next/image'
 
@@ -25,11 +24,12 @@ export default function Home({ products }: { products: ProductResponse[] }) {
   const [data, setData] = useState<ProductResponse[]>([])
   const [search, setSearch] = useState('')
 
-  function getProducts() {
+  async function getProducts() {
     if (!search) {
       setData(products)
       return
     }
+    const Fuse = (await import('fuse.js')).default
     const fuse = new Fuse(products, {
       keys: ['title', 'category', 'description', 'price'],
     })
